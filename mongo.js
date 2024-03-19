@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
+require('dotenv').config()
 
-mongoose.connect('mongodb+srv://node-auth:Awesome6@cluster0.mn7emsg.mongodb.net/node-auth', {
+mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
