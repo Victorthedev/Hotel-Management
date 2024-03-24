@@ -1,9 +1,12 @@
 const Room = require('../models/room');
+const { createRoomSchema, updateRoomSchema, filterRoomsSchema } = require('../validationSchemas/roomValidation');
 
 exports.createRoom = async (req, res) => {
   try {
-    const room = await Room.create(req.body);
-    res.status(201).json(room);
+    const { error } = createRoomSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -11,25 +14,10 @@ exports.createRoom = async (req, res) => {
 
 exports.getAllRooms = async (req, res) => {
   try {
-    let query = {};
-    if (req.query.roomType) {
-      query.roomType = req.query.roomType;
+    const { error } = filterRoomsSchema.validate(req.query);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
     }
-    if (req.query.minPrice || req.query.maxPrice) {
-      query.price = {};
-      if (req.query.minPrice) {
-        query.price.$gte = req.query.minPrice;
-      }
-      if (req.query.maxPrice) {
-        query.price.$lte = req.query.maxPrice;
-      }
-    }
-    if (req.query.search) {
-      query.name = { $regex: req.query.search, $options: 'i' };
-    }
-
-    const rooms = await Room.find(query).populate('roomType');
-    res.json(rooms);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -49,11 +37,10 @@ exports.getRoomById = async (req, res) => {
 
 exports.updateRoom = async (req, res) => {
   try {
-    const room = await Room.findByIdAndUpdate(req.params.roomId, req.body, { new: true });
-    if (!room) {
-      return res.status(404).json({ message: 'Room not found' });
+    const { error } = updateRoomSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
     }
-    res.json(room);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
